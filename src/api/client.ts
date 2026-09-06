@@ -85,14 +85,15 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   if (token) headers["Authorization"] = `Bearer ${token}`;
   if (options.body !== undefined && !options.formData) headers["Content-Type"] = "application/json";
 
+  const init: RequestInit = { method, headers };
+  const payload = options.formData ?? (options.body !== undefined ? JSON.stringify(options.body) : null);
+  if (payload !== null) init.body = payload;
+  if (options.signal) init.signal = options.signal;
+
   let res: Response;
   try {
-    res = await fetch(`${API_BASE_URL}${fullPath}`, {
-      method,
-      headers,
-      body: options.formData ?? (options.body !== undefined ? JSON.stringify(options.body) : undefined),
-      signal: options.signal,
-    });
+    res = await fetch(`${API_BASE_URL}${fullPath}`, init);
+
   } catch {
     throw new ApiError(0, "We couldn't reach the server. Check your connection and try again.");
   }
